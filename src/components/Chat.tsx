@@ -16,7 +16,7 @@ import {
   Collapse,
   Select,
 } from '@chakra-ui/react'
-import { ChatMessage, sendMessage, setApiKey } from '../services/api'
+import { ChatMessage, sendMessage, setApiKey, setApiBaseUrl } from '../services/api'
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons'
 
 export default function Chat() {
@@ -29,6 +29,7 @@ export default function Chat() {
   const [systemPrompt, setSystemPrompt] = useState('')
   const [model, setModel] = useState('deepseek-chat')
   const [isStreaming, setIsStreaming] = useState(false)
+  const [apiUrl, setApiUrl] = useState('https://api.deepseek.com/v1')
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true })
   const toast = useToast()
 
@@ -36,6 +37,7 @@ export default function Chat() {
     const savedApiKey = localStorage.getItem('apiKey')
     const savedSystemPrompt = localStorage.getItem('systemPrompt')
     const savedModel = localStorage.getItem('model')
+    const savedApiUrl = localStorage.getItem('apiUrl')
     if (savedApiKey) {
       setApiKeyState(savedApiKey)
       setApiKey(savedApiKey)
@@ -45,6 +47,10 @@ export default function Chat() {
     }
     if (savedModel) {
       setModel(savedModel)
+    }
+    if (savedApiUrl) {
+      setApiUrl(savedApiUrl)
+      setApiBaseUrl(savedApiUrl)
     }
   }, [])
 
@@ -146,6 +152,41 @@ export default function Chat() {
           </HStack>
           <Collapse in={isOpen}>
             <VStack spacing={4} p={4} bg="white" borderRadius="md" boxShadow="sm" border="1px" borderColor="gray.200">
+              <FormControl>
+                <FormLabel>API URL</FormLabel>
+                <Select
+                  value={apiUrl}
+                  onChange={(e) => {
+                    setApiUrl(e.target.value)
+                    setApiBaseUrl(e.target.value)
+                    localStorage.setItem('apiUrl', e.target.value)
+                    // 清空API Key
+                    handleApiKeyChange('')
+                  }}
+                  placeholder="请选择或输入API URL"
+                  size="md"
+                >
+                  <option value="https://api.deepseek.com/v1">DeepSeek API</option>
+                  <option value="https://DeepSeek-R1-yunxin.eastus.models.ai.azure.com">Azure API</option>
+                  <option value="http://ai-text-service-test.apps-hangyan.danlu.netease.com/api/v2/text">伏羲 API</option>
+                  <option value="custom">自定义</option>
+                </Select>
+                {apiUrl === 'custom' && (
+                  <Input
+                    mt={2}
+                    value={apiUrl === 'custom' ? '' : apiUrl}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setApiUrl(value)
+                      setApiBaseUrl(value)
+                      localStorage.setItem('apiUrl', value)
+                      handleApiKeyChange('')
+                    }}
+                    placeholder="请输入自定义API URL"
+                    size="md"
+                  />
+                )}
+              </FormControl>
               <FormControl>
                 <FormLabel>API Key</FormLabel>
                 <Input
